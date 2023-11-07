@@ -1,0 +1,49 @@
+const Item = require("../models/item");
+const Category = require("../models/category");
+const asyncHandler = require("express-async-handler");
+
+exports.index = asyncHandler(async (req, res, next) => {
+    // Get quantities of Items and Categories in database
+    const [numItems, numCategories] = await Promise.all([
+        Item.countDocuments({}).exec(),
+        Category.countDocuments({}).exec(),
+    ]);
+
+    res.render("index", {
+        title: "Inventory Home",
+        itemCount: numItems,
+        categoryCount: numCategories,
+    });
+});
+
+exports.itemList = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item List");
+});
+
+exports.itemDetail = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Detail");
+});
+
+exports.itemCreateGet = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Create GET");
+});
+
+exports.itemCreatePost = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Create POST");
+});
+
+exports.itemUpdateGet = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Update GET");
+});
+
+exports.itemUpdatePost = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Update POST");
+});
+
+exports.itemDeleteGet = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Delete GET");
+});
+
+exports.itemDeletePost = asyncHandler(async (req, res, next) => {
+    res.send("Not yet implemented: Item Delete POST");
+});
