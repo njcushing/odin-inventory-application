@@ -10,7 +10,6 @@ exports.index = asyncHandler(async (req, res, next) => {
     ]);
 
     res.render("index", {
-        title: "Inventory Home",
         itemCount: numItems,
         categoryCount: numCategories,
     });

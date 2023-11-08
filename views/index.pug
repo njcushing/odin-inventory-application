@@ -1,5 +1,10 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  h1 FakeStore Inventory 
+
+  p The inventory has the following record counts:
+
+  ul
+    li #[strong Items:] !{itemCount}
+    li #[strong Categories:] !{categoryCount}
