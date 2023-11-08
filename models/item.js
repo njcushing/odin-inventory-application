@@ -30,4 +30,11 @@ ItemSchema.virtual("url").get(function () {
     return `/catalog/item/${this._id}`;
 });
 
+ItemSchema.virtual("priceFormattedGBP").get(function () {
+    return Intl.NumberFormat("en-UK", {
+        style: "currency",
+        currency: "GBP",
+    }).format(this.price / 100);
+});
+
 module.exports = mongoose.model("Item", ItemSchema);
