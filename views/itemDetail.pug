@@ -4,11 +4,7 @@ block content
   h1 #{title}#{item.name}
   p= item.description
   h4 Price: #{item.priceFormattedGBP}
-  ul(style={
-    "list-style":"none",
-    "padding":"0",
-    "margin":"0"
-  }) Categories:
+  ul(class="basic-list") Categories:
     each category in item.category
       li
         a(href=category.url) #{category.name}
