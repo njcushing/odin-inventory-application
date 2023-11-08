@@ -4,8 +4,15 @@ block content
   h1 #{title}#{category.name}
   p #{category.description}
 
-  ul
+  ul(class="basic-list")
     each item in itemsInCategory
       li
         a(href=item.url) #{item.name}
         |  - #{item.priceFormattedGBP}
+    else
+      li #[strong There are currently no items in this category.]
+
+  hr
+  a(href=category.url+"/update") Update Category
+  br
+  a(href=category.url+"/delete") Delete Category
