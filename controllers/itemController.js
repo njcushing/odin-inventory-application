@@ -24,7 +24,16 @@ exports.itemList = asyncHandler(async (req, res, next) => {
 });
 
 exports.itemDetail = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Detail");
+    const item = await Item.findById(req.params.id).populate("category").exec();
+    if (item === null) {
+        const err = new Error("Item not found");
+        err.status = 404;
+        return next(err);
+    }
+    res.render("itemDetail", {
+        title: "Item: ",
+        item: item,
+    });
 });
 
 exports.itemCreateGet = asyncHandler(async (req, res, next) => {
