@@ -3,4 +3,10 @@
     padding: 0;
     list-style: none;
 }
+
+.basic-list {
+    list-style: none;
+    padding: 0rem;
+    margin: 0rem;
+}
   
