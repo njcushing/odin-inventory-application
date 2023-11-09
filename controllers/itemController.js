@@ -1,6 +1,7 @@
 const Item = require("../models/item");
 const Category = require("../models/category");
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 
 exports.index = asyncHandler(async (req, res, next) => {
     // Get quantities of Items and Categories in database
@@ -37,12 +38,69 @@ exports.itemDetail = asyncHandler(async (req, res, next) => {
 });
 
 exports.itemCreateGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Create GET");
+    const categoryList = await Category.find().sort({ name: 1 }).exec();
+    categoryList.forEach((category) => (category.checked = false));
+    res.render("itemForm", {
+        title: "Create New Item",
+        categoryList: categoryList,
+        buttonText: "Create",
+    });
 });
 
-exports.itemCreatePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Create POST");
-});
+exports.itemCreatePost = [
+    (req, res, next) => {
+        if (!Array.isArray(req.body.category)) {
+            if (typeof req.body.category === "undefined")
+                req.body.category = [];
+            else req.body.category = new Array(req.body.category);
+        }
+        next();
+    },
+    body("name", "The 'Name' field must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("description").trim().escape(),
+    body("category.*").escape(),
+    body("price")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Price must be an integer value greater than or equal to 0."
+        ),
+    body("quantity")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Quantity must be an integer value greater than or equal to 0."
+        ),
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const item = new Item({
+            name: req.body.name,
+            description: req.body.description,
+            category: req.body.category,
+            price: req.body.price,
+            quantity: req.body.quantity,
+        });
+        if (!errors.isEmpty()) {
+            const categoryList = await Category.find().sort({ name: 1 }).exec();
+            categoryList.forEach((category) => {
+                if (item.category.includes(category._id)) {
+                    category.checked = "true";
+                }
+            });
+            res.render("itemForm", {
+                title: "Create New Item",
+                item: item,
+                categoryList: categoryList,
+                buttonText: "Create",
+                errors: errors.array(),
+            });
+        } else {
+            await item.save();
+            res.redirect(item.url);
+        }
+    }),
+];
 
 exports.itemUpdateGet = asyncHandler(async (req, res, next) => {
     res.send("Not yet implemented: Item Update GET");
