@@ -1,6 +1,7 @@
 const Category = require("../models/category");
 const Item = require("../models/item");
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 
 exports.categoryList = asyncHandler(async (req, res, next) => {
     const allCategories = await Category.find().exec();
@@ -13,8 +14,6 @@ exports.categoryList = asyncHandler(async (req, res, next) => {
 exports.categoryDetail = asyncHandler(async (req, res, next) => {
     const [category, itemsInCategory] = await Promise.all([
         Category.findById(req.params.id).exec(),
-
-        // Find all items that reference the specified category id
         Item.find({ category: req.params.id }, { name: 1, price: 1 }).exec(),
     ]);
     if (category === null) {
@@ -30,12 +29,36 @@ exports.categoryDetail = asyncHandler(async (req, res, next) => {
 });
 
 exports.categoryCreateGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Create GET");
+    res.render("categoryForm", { title: "Create New Category" });
 });
 
-exports.categoryCreatePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Create POST");
-});
+exports.categoryCreatePost = [
+    body(
+        "name",
+        "Category name must be between 3 and 100 characters in length."
+    )
+        .trim()
+        .isLength({ min: 3, max: 100 })
+        .escape(),
+    body("description").escape(),
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const category = new Category({
+            name: req.body.name,
+            description: req.body.description,
+        });
+        if (!errors.isEmpty()) {
+            res.render("categoryForm", {
+                title: "Create New Category",
+                category: category,
+                errors: errors.array(),
+            });
+        } else {
+            await category.save();
+            res.redirect(category.url);
+        }
+    }),
+];
 
 exports.categoryUpdateGet = asyncHandler(async (req, res, next) => {
     res.send("Not yet implemented: Category Update GET");
