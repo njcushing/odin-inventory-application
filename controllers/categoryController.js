@@ -44,7 +44,7 @@ exports.categoryCreatePost = [
         .trim()
         .isLength({ min: 3, max: 100 })
         .escape(),
-    body("description").escape(),
+    body("description").trim().escape(),
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         const category = new Category({
