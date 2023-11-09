@@ -103,12 +103,87 @@ exports.itemCreatePost = [
 ];
 
 exports.itemUpdateGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Update GET");
+    const [item, categoryList] = await Promise.all([
+        Item.findById(req.params.id),
+        Category.find().sort({ name: 1 }).exec(),
+    ]);
+    categoryList.forEach((category) => {
+        if (item.category.includes(category._id)) {
+            category.checked = "true";
+        }
+    });
+    if (item === null) {
+        const err = new Error("Item not found");
+        err.status = 404;
+        return next(err);
+    }
+    res.render("itemForm", {
+        title: "Update Item Information",
+        item: item,
+        categoryList: categoryList,
+        buttonText: "Update",
+    });
 });
 
-exports.itemUpdatePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Update POST");
-});
+exports.itemUpdatePost = [
+    (req, res, next) => {
+        if (!Array.isArray(req.body.category)) {
+            if (typeof req.body.category === "undefined")
+                req.body.category = [];
+            else req.body.category = new Array(req.body.category);
+        }
+        next();
+    },
+    body("name", "The 'Name' field must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("description").trim().escape(),
+    body("category.*").escape(),
+    body("price")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Price must be an integer value greater than or equal to 0."
+        ),
+    body("quantity")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Quantity must be an integer value greater than or equal to 0."
+        ),
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const item = new Item({
+            name: req.body.name,
+            description: req.body.description,
+            category: req.body.category,
+            price: req.body.price,
+            quantity: req.body.quantity,
+            _id: req.params.id, // Use specified _id to overwrite existing record in database on save
+        });
+        if (!errors.isEmpty()) {
+            const categoryList = await Category.find().sort({ name: 1 }).exec();
+            categoryList.forEach((category) => {
+                if (item.category.includes(category._id)) {
+                    category.checked = "true";
+                }
+            });
+            res.render("itemForm", {
+                title: "Update Item Information",
+                item: item,
+                categoryList: categoryList,
+                buttonText: "Create",
+                errors: errors.array(),
+            });
+        } else {
+            const updatedItem = await Item.findByIdAndUpdate(
+                req.params.id,
+                item,
+                {}
+            );
+            res.redirect(item.url);
+        }
+    }),
+];
 
 exports.itemDeleteGet = asyncHandler(async (req, res, next) => {
     res.send("Not yet implemented: Item Delete GET");
