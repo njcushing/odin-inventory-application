@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1 #{title}#{category.name}?
+  p This category will be #[strong removed] from all records that reference it.
+  
+  ul(style={"display":"flex", "gap":"0.5rem"} class="basic-list")
+    li
+      form(action="" method="POST")
+        input(type="hidden" id="categoryid" name="categoryid" required=true value=category._id)
+        button(type="submit") Yes
+    li
+      a(href=category.url)
+        button No
