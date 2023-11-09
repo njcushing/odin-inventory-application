@@ -22,7 +22,6 @@ block content
       br
       label(for="quantity") Number in stock:
       input.form-control(type="number" id="quantity" name="quantity" min=0 value=item ? item.quantity : "")
-    br
     button.btn.btn-primary(type="submit") #{buttonText ? buttonText : "Submit"}
   
   if(errors)

@@ -11,7 +11,9 @@ block content
       label(for="description") Description:
       textarea.form-control(id="description" name="description" ) #{value=category ? category.description : ""}
     button.btn.btn-primary(type="submit" class="basic-textarea") #{value=buttonText ? buttonText : "Submit"}
+  
   if(errors)
+    br
     h5 Warning: 
     ul
       each error in errors
