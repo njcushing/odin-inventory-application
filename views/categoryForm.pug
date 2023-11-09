@@ -10,7 +10,7 @@ block content
       br
       label(for="description") Description:
       textarea(id="description" name="description" ) #{value=category ? category.description : ""}
-    button(type="submit" class="basic-textarea") Create
+    button(type="submit" class="basic-textarea") #{value=buttonText ? buttonText : "Submit"}
   if(errors)
     h5 Warning: 
     ul
