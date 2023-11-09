@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1= title
+
+  form(action="" method="POST")
+    div(class="form-group")
+      label(for="name") Name:
+      input(type="text" id="name" name="name" required="true" value=category ? category.name : "")
+      br
+      label(for="description") Description:
+      textarea(id="description" name="description" ) #{value=category ? category.description : ""}
+    button(type="submit" class="basic-textarea") Create
+  if(errors)
+    h5 Warning: 
+    ul
+      each error in errors
+        li= error.msg
