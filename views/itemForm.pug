@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  h1= title
+
+  form(action="" method="POST")
+    div.form-group
+      label(for="name") Name:
+      input.form-control(type="text" id="name" name="name" required="true" value=item ? item.name : "")
+      br
+      label(for="description") Description:
+      textarea.form-control(id="description" name="description") #{item ? item.description : ""}
+      br
+      ul.basic-list Categories:
+        each category in categoryList
+          li
+            input.checkbox-input(type="checkbox" id=category._id name="category" checked=category.checked value=category._id)
+            label(for=category._id) #{category.name}
+      br
+      label(for="price") Price in pence (GBP):
+      input.form-control(type="number" id="price" name="price" min=0 value=item ? item.price : "")
+      br
+      label(for="quantity") Number in stock:
+      input.form-control(type="number" id="quantity" name="quantity" min=0 value=item ? item.quantity : "")
+    br
+    button.btn.btn-primary(type="submit") #{buttonText ? buttonText : "Submit"}
+  
+  if(errors)
+    br
+    h5 Warning: 
+    ul
+      each error in errors
+        li= error.msg
