@@ -1,5 +1,6 @@
 const Category = require("../models/category");
 const Item = require("../models/item");
+const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
@@ -111,9 +112,23 @@ exports.categoryUpdatePost = [
 ];
 
 exports.categoryDeleteGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Delete GET");
+    const category = await Category.findById(req.params.id);
+    res.render("categoryDelete", {
+        title: "Delete the category: ",
+        category: category,
+    });
 });
 
 exports.categoryDeletePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Delete POST");
+    const category = await Category.findById(req.params.id).exec();
+    if (category === null) {
+        const err = new Error("Category not found");
+        err.status = 404;
+        return next(err);
+    }
+    await Item.updateMany({
+        $pull: { category: new mongoose.Types.ObjectId(req.body.categoryid) },
+    });
+    await Category.findByIdAndDelete(req.body.categoryid);
+    res.redirect("/catalog/categories");
 });
