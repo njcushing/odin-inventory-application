@@ -186,9 +186,19 @@ exports.itemUpdatePost = [
 ];
 
 exports.itemDeleteGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Delete GET");
+    const item = await Item.findById(req.params.id).exec();
+    if (item === null) {
+        const err = new Error("Item not found");
+        err.status = 404;
+        return next(err);
+    }
+    res.render("itemDelete", {
+        title: "Delete the item: ",
+        item: item,
+    });
 });
 
 exports.itemDeletePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Item Delete POST");
+    await Item.findByIdAndDelete(req.body.itemid);
+    res.redirect("/catalog/items");
 });
