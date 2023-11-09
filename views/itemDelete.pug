@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1 #{title}#{item.name}?
+  
+  ul(style={"display":"flex", "gap":"0.5rem"} class="basic-list")
+    li
+      form(action="" method="POST")
+        input(type="hidden" id="itemid" name="itemid" required=true value=item._id)
+        button(type="submit") Yes
+    li  
+      a(href=item.url)
+        button No
