@@ -29,7 +29,10 @@ exports.categoryDetail = asyncHandler(async (req, res, next) => {
 });
 
 exports.categoryCreateGet = asyncHandler(async (req, res, next) => {
-    res.render("categoryForm", { title: "Create New Category" });
+    res.render("categoryForm", {
+        title: "Create New Category",
+        buttonText: "Create",
+    });
 });
 
 exports.categoryCreatePost = [
@@ -61,12 +64,51 @@ exports.categoryCreatePost = [
 ];
 
 exports.categoryUpdateGet = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Update GET");
+    const category = await Category.findById(req.params.id).exec();
+    if (category === null) {
+        const err = new Error("Category not found");
+        err.status = 404;
+        return next(err);
+    }
+    res.render("categoryForm", {
+        title: "Update Category Information",
+        category: category,
+        buttonText: "Update",
+    });
 });
 
-exports.categoryUpdatePost = asyncHandler(async (req, res, next) => {
-    res.send("Not yet implemented: Category Update POST");
-});
+exports.categoryUpdatePost = [
+    body(
+        "name",
+        "Category name must be between 3 and 100 characters in length."
+    )
+        .trim()
+        .isLength({ min: 3, max: 100 })
+        .escape(),
+    body("description").escape(),
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const category = new Category({
+            name: req.body.name,
+            description: req.body.description,
+            _id: req.params.id, // Use specified _id to overwrite existing record in database on save
+        });
+        if (!errors.isEmpty()) {
+            res.render("categoryForm", {
+                title: "Update Category Information",
+                category: category,
+                errors: errors.array(),
+            });
+        } else {
+            const updatedCategory = await Category.findByIdAndUpdate(
+                req.params.id,
+                category,
+                {}
+            );
+            res.redirect(category.url);
+        }
+    }),
+];
 
 exports.categoryDeleteGet = asyncHandler(async (req, res, next) => {
     res.send("Not yet implemented: Category Delete GET");
