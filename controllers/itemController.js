@@ -3,6 +3,19 @@ const Category = require("../models/category");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
+const path = require("path");
+const multer = require("multer");
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "./public/images");
+    },
+    filename: function (req, file, cb) {
+        const prefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, prefix + path.extname(file.originalname));
+    },
+});
+const upload = multer({ storage: storage });
+
 exports.index = asyncHandler(async (req, res, next) => {
     // Get quantities of Items and Categories in database
     const [numItems, numCategories] = await Promise.all([
@@ -48,6 +61,7 @@ exports.itemCreateGet = asyncHandler(async (req, res, next) => {
 });
 
 exports.itemCreatePost = [
+    upload.single("image"),
     (req, res, next) => {
         if (!Array.isArray(req.body.category)) {
             if (typeof req.body.category === "undefined")
@@ -80,6 +94,7 @@ exports.itemCreatePost = [
             category: req.body.category,
             price: req.body.price,
             quantity: req.body.quantity,
+            image: req.file ? req.file.filename : null,
         });
         if (!errors.isEmpty()) {
             const categoryList = await Category.find().sort({ name: 1 }).exec();
@@ -126,6 +141,7 @@ exports.itemUpdateGet = asyncHandler(async (req, res, next) => {
 });
 
 exports.itemUpdatePost = [
+    upload.single("image"),
     (req, res, next) => {
         if (!Array.isArray(req.body.category)) {
             if (typeof req.body.category === "undefined")
@@ -158,6 +174,7 @@ exports.itemUpdatePost = [
             category: req.body.category,
             price: req.body.price,
             quantity: req.body.quantity,
+            image: req.file ? req.file.filename : null,
             _id: req.params.id, // Use specified _id to overwrite existing record in database on save
         });
         if (!errors.isEmpty()) {
