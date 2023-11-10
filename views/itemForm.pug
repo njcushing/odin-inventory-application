@@ -3,7 +3,7 @@ extends layout
 block content
   h1= title
 
-  form(action="" method="POST")
+  form(action="" method="POST" enctype="multipart/form-data")
     div.form-group
       label(for="name") Name:
       input.form-control(type="text" id="name" name="name" required="true" value=item ? item.name : "")
@@ -22,6 +22,9 @@ block content
       br
       label(for="quantity") Number in stock:
       input.form-control(type="number" id="quantity" name="quantity" min=0 value=item ? item.quantity : "")
+      br
+      | Upload image
+      input.form-control-file(type="file" id="image" name="image" accept="image/png, image/jpeg")
     button.btn.btn-primary(type="submit") #{buttonText ? buttonText : "Submit"}
   
   if(errors)
