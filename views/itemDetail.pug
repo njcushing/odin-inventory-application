@@ -2,6 +2,12 @@ extends layout
 
 block content
   h1 #{title}#{item.name}
+  hr
+  if item.image
+    img(src=`/images/${item.image}`)
+  else
+    | No image found
+  hr
   p= item.description
   h4 Price: #{item.priceFormattedGBP}
   ul(class="basic-list") Categories:
