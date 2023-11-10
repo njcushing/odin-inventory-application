@@ -10,7 +10,7 @@ block content
       br
       label(for="description") Description:
       textarea.form-control(id="description" name="description" ) #{value=category ? category.description : ""}
-    button.btn.btn-primary(type="submit" class="basic-textarea") #{value=buttonText ? buttonText : "Submit"}
+    button.btn.btn-primary(type="submit") #{value=buttonText ? buttonText : "Submit"}
   
   if(errors)
     br
