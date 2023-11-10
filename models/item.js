@@ -23,7 +23,7 @@ const ItemSchema = new Schema({
         validate: integerValidator,
         default: 0,
     },
-    image: { type: Buffer },
+    image: { type: String },
 });
 
 ItemSchema.virtual("url").get(function () {
