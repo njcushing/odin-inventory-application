@@ -23,8 +23,12 @@ block content
       label(for="quantity") Number in stock:
       input.form-control(type="number" id="quantity" name="quantity" min=0 value=item ? item.quantity : "")
       br
-      | Upload image
-      input.form-control-file(type="file" id="image" name="image" accept="image/png, image/jpeg")
+      | Upload image (Maximum size 1MB)
+      input.form-control-file(type="file" id="image" name="image" accept="image/png, image/jpg, image/jpeg, image/tiff, image/gif")
+      hr
+      | Please insert the administrator's password before submitting this action:
+      input.form-control(type="password" id="password" name="password" value=password ? password : "")
+      hr
     button.btn.btn-primary(type="submit") #{buttonText ? buttonText : "Submit"}
   
   if(errors)
