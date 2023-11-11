@@ -9,7 +9,11 @@ block content
       input.form-control(type="text" id="name" name="name" required="true" value=category ? category.name : "")
       br
       label(for="description") Description:
-      textarea.form-control(id="description" name="description" ) #{value=category ? category.description : ""}
+      textarea.form-control(id="description" name="description" ) #{category ? category.description : ""}
+      hr
+      | Please insert the administrator's password before submitting this action:
+      input.form-control(type="password" id="password" name="password" value=password ? password : "")
+      hr
     button.btn.btn-primary(type="submit") #{value=buttonText ? buttonText : "Submit"}
   
   if(errors)
