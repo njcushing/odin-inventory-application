@@ -3,11 +3,22 @@ extends layout
 block content
   h1 #{title}#{item.name}?
   
-  ul(style={"display":"flex", "gap":"0.5rem"} class="basic-list")
+  ul.basic-list
+    li  
+      a(href=item.url)
+        button.btn.btn-primary Go Back
     li
       form(action="" method="POST")
         input(type="hidden" id="itemid" name="itemid" required=true value=item._id)
-        button.btn.btn-primary(type="submit") Yes
-    li  
-      a(href=item.url)
-        button.btn.btn-primary No
+        hr
+        | Please insert the administrator's password before submitting this action:
+        input.form-control(type="password" id="password" name="password" value=password ? password : "")
+        hr
+        button.btn.btn-primary(type="submit") Delete
+  
+  if(errors)
+    br
+    h5 Warning: 
+    ul
+      each error in errors
+        li= error.msg
