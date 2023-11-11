@@ -126,6 +126,10 @@ exports.itemCreatePost = [
             image: req.file ? req.file.filename : null,
         });
         if (!errors.isEmpty()) {
+            fs.unlink(`./public/images/${item.image}`, (err) => {
+                return;
+            });
+            item.image = null;
             const categoryList = await Category.find().sort({ name: 1 }).exec();
             categoryList.forEach((category) => {
                 if (item.category.includes(category._id)) {
@@ -192,6 +196,10 @@ exports.itemUpdatePost = [
             _id: req.params.id, // Use specified _id to overwrite existing record in database on save
         });
         if (!errors.isEmpty()) {
+            fs.unlink(`./public/images/${item.image}`, (err) => {
+                return;
+            });
+            item.image = null;
             const categoryList = await Category.find().sort({ name: 1 }).exec();
             categoryList.forEach((category) => {
                 if (item.category.includes(category._id)) {
@@ -206,6 +214,12 @@ exports.itemUpdatePost = [
                 errors: errors.array(),
             });
         } else {
+            const originalItem = await Item.findById(req.params.id);
+            if (originalItem !== null && originalItem.image !== null) {
+                fs.unlink(`./public/images/${originalItem.image}`, (err) => {
+                    return;
+                });
+            }
             const updatedItem = await Item.findByIdAndUpdate(
                 req.params.id,
                 item,
