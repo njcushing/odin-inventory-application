@@ -1,8 +1,10 @@
 const Item = require("../models/item");
 const Category = require("../models/category");
+const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const fs = require("fs");
+const debug = require("debug")("item");
 
 const path = require("path");
 const multer = require("multer");
@@ -60,6 +62,13 @@ const checkFieldValidation = [
     validatePassword,
 ];
 
+const debugResponse = (req, res, next) => {
+    debug(`item not found: ${req.params.id}`);
+    const err = new Error("Item not found");
+    err.status = 404;
+    return next(err);
+};
+
 exports.index = asyncHandler(async (req, res, next) => {
     // Get quantities of Items and Categories in database
     const [numItems, numCategories] = await Promise.all([
@@ -82,12 +91,11 @@ exports.itemList = asyncHandler(async (req, res, next) => {
 });
 
 exports.itemDetail = asyncHandler(async (req, res, next) => {
-    const item = await Item.findById(req.params.id).populate("category").exec();
-    if (item === null) {
-        const err = new Error("Item not found");
-        err.status = 404;
-        return next(err);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
     }
+    const item = await Item.findById(req.params.id).populate("category").exec();
+    if (item === null) debugResponse(req, res, next);
     res.render("itemDetail", {
         title: "Item: ",
         item: item,
@@ -151,20 +159,19 @@ exports.itemCreatePost = [
 ];
 
 exports.itemUpdateGet = asyncHandler(async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
+    }
     const [item, categoryList] = await Promise.all([
         Item.findById(req.params.id),
         Category.find().sort({ name: 1 }).exec(),
     ]);
+    if (item === null) debugResponse(req, res, next);
     categoryList.forEach((category) => {
         if (item.category.includes(category._id)) {
             category.checked = "true";
         }
     });
-    if (item === null) {
-        const err = new Error("Item not found");
-        err.status = 404;
-        return next(err);
-    }
     res.render("itemForm", {
         title: "Update Item Information",
         item: item,
@@ -214,8 +221,12 @@ exports.itemUpdatePost = [
                 errors: errors.array(),
             });
         } else {
+            if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+                debugResponse(req, res, next);
+            }
             const originalItem = await Item.findById(req.params.id);
-            if (originalItem !== null && originalItem.image !== null) {
+            if (originalItem === null) debugResponse(req, res, next);
+            if (originalItem.image !== null) {
                 fs.unlink(`./public/images/${originalItem.image}`, (err) => {
                     return;
                 });
@@ -231,12 +242,11 @@ exports.itemUpdatePost = [
 ];
 
 exports.itemDeleteGet = asyncHandler(async (req, res, next) => {
-    const item = await Item.findById(req.params.id).exec();
-    if (item === null) {
-        const err = new Error("Item not found");
-        err.status = 404;
-        return next(err);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
     }
+    const item = await Item.findById(req.params.id).exec();
+    if (item === null) debugResponse(req, res, next);
     res.render("itemDelete", {
         title: "Delete the item: ",
         item: item,
@@ -247,12 +257,11 @@ exports.itemDeletePost = [
     validatePassword,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
-        const item = await Item.findById(req.params.id).exec();
-        if (item === null) {
-            const err = new Error("Item not found");
-            err.status = 404;
-            return next(err);
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            debugResponse(req, res, next);
         }
+        const item = await Item.findById(req.params.id).exec();
+        if (item === null) debugResponse(req, res, next);
         if (!errors.isEmpty()) {
             res.render("itemDelete", {
                 title: "Delete the item: ",
