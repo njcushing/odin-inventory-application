@@ -2,6 +2,7 @@ const Item = require("../models/item");
 const Category = require("../models/category");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
+const fs = require("fs");
 
 const path = require("path");
 const multer = require("multer");
@@ -16,9 +17,8 @@ const authorisedMimeTypes = [
     "image/gif",
 ];
 const fileFilter = (req, file, cb) => {
-    if (authorisedMimeTypes.includes(file.mimetype)) {
-        return cb(null, true);
-    } else return cb(null, false);
+    if (authorisedMimeTypes.includes(file.mimetype)) return cb(null, true);
+    return cb(null, false);
 };
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -246,6 +246,9 @@ exports.itemDeletePost = [
                 errors: errors.array(),
             });
         } else {
+            fs.unlink(`./public/images/${item.image}`, (err) => {
+                return;
+            });
             await Item.findByIdAndDelete(req.body.itemid);
             res.redirect("/catalog/items");
         }
