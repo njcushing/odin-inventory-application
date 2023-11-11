@@ -5,6 +5,21 @@ const { body, validationResult } = require("express-validator");
 
 const path = require("path");
 const multer = require("multer");
+const limits = {
+    fileSize: 1_000_000, // 1MB file size maximum
+    files: 1,
+};
+const authorisedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/gif",
+];
+const fileFilter = (req, file, cb) => {
+    if (authorisedMimeTypes.includes(file.mimetype)) {
+        return cb(null, true);
+    } else return cb(null, false);
+};
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, "./public/images");
@@ -14,7 +29,36 @@ const storage = multer.diskStorage({
         cb(null, prefix + path.extname(file.originalname));
     },
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+    limits: limits,
+    fileFilter: fileFilter,
+    storage: storage,
+});
+
+const validatePassword = body("password", "Password is incorrect")
+    .trim()
+    .escape()
+    .equals(process.env.ADMIN_PASS);
+
+const checkFieldValidation = [
+    body("name", "The 'Name' field must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("description").trim().escape(),
+    body("category.*").escape(),
+    body("price")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Price must be an integer value greater than or equal to 0."
+        ),
+    body("quantity")
+        .isInt({ min: 0 })
+        .withMessage(
+            "Quantity must be an integer value greater than or equal to 0."
+        ),
+    validatePassword,
+];
 
 exports.index = asyncHandler(async (req, res, next) => {
     // Get quantities of Items and Categories in database
@@ -70,22 +114,7 @@ exports.itemCreatePost = [
         }
         next();
     },
-    body("name", "The 'Name' field must not be empty.")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("description").trim().escape(),
-    body("category.*").escape(),
-    body("price")
-        .isInt({ min: 0 })
-        .withMessage(
-            "Price must be an integer value greater than or equal to 0."
-        ),
-    body("quantity")
-        .isInt({ min: 0 })
-        .withMessage(
-            "Quantity must be an integer value greater than or equal to 0."
-        ),
+    checkFieldValidation,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         const item = new Item({
@@ -150,22 +179,7 @@ exports.itemUpdatePost = [
         }
         next();
     },
-    body("name", "The 'Name' field must not be empty.")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("description").trim().escape(),
-    body("category.*").escape(),
-    body("price")
-        .isInt({ min: 0 })
-        .withMessage(
-            "Price must be an integer value greater than or equal to 0."
-        ),
-    body("quantity")
-        .isInt({ min: 0 })
-        .withMessage(
-            "Quantity must be an integer value greater than or equal to 0."
-        ),
+    checkFieldValidation,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         const item = new Item({
@@ -215,7 +229,25 @@ exports.itemDeleteGet = asyncHandler(async (req, res, next) => {
     });
 });
 
-exports.itemDeletePost = asyncHandler(async (req, res, next) => {
-    await Item.findByIdAndDelete(req.body.itemid);
-    res.redirect("/catalog/items");
-});
+exports.itemDeletePost = [
+    validatePassword,
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const item = await Item.findById(req.params.id).exec();
+        if (item === null) {
+            const err = new Error("Item not found");
+            err.status = 404;
+            return next(err);
+        }
+        if (!errors.isEmpty()) {
+            res.render("itemDelete", {
+                title: "Delete the item: ",
+                item: item,
+                errors: errors.array(),
+            });
+        } else {
+            await Item.findByIdAndDelete(req.body.itemid);
+            res.redirect("/catalog/items");
+        }
+    }),
+];
