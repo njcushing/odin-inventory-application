@@ -3,6 +3,7 @@ const Item = require("../models/item");
 const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
+const debug = require("debug")("category");
 
 const validatePassword = body("password", "Password is incorrect")
     .trim()
@@ -21,6 +22,13 @@ const checkFieldValidation = [
     validatePassword,
 ];
 
+const debugResponse = (req, res, next) => {
+    debug(`category not found: ${req.params.id}`);
+    const err = new Error("Category not found");
+    err.status = 404;
+    return next(err);
+};
+
 exports.categoryList = asyncHandler(async (req, res, next) => {
     const allCategories = await Category.find().exec();
     res.render("categoryList", {
@@ -30,15 +38,14 @@ exports.categoryList = asyncHandler(async (req, res, next) => {
 });
 
 exports.categoryDetail = asyncHandler(async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
+    }
     const [category, itemsInCategory] = await Promise.all([
         Category.findById(req.params.id).exec(),
         Item.find({ category: req.params.id }, { name: 1, price: 1 }).exec(),
     ]);
-    if (category === null) {
-        const err = new Error("Category not found");
-        err.status = 404;
-        return next(err);
-    }
+    if (category === null) debugResponse(req, res, next);
     res.render("categoryDetail", {
         title: "Category: ",
         category: category,
@@ -75,12 +82,11 @@ exports.categoryCreatePost = [
 ];
 
 exports.categoryUpdateGet = asyncHandler(async (req, res, next) => {
-    const category = await Category.findById(req.params.id).exec();
-    if (category === null) {
-        const err = new Error("Category not found");
-        err.status = 404;
-        return next(err);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
     }
+    const category = await Category.findById(req.params.id).exec();
+    if (category === null) debugResponse(req, res, next);
     res.render("categoryForm", {
         title: "Update Category Information",
         category: category,
@@ -104,6 +110,9 @@ exports.categoryUpdatePost = [
                 errors: errors.array(),
             });
         } else {
+            if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+                debugResponse(req, res, next);
+            }
             const updatedCategory = await Category.findByIdAndUpdate(
                 req.params.id,
                 category,
@@ -115,7 +124,11 @@ exports.categoryUpdatePost = [
 ];
 
 exports.categoryDeleteGet = asyncHandler(async (req, res, next) => {
-    const category = await Category.findById(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        debugResponse(req, res, next);
+    }
+    const category = await Category.findById(req.params.id).exec();
+    if (category === null) debugResponse(req, res, next);
     res.render("categoryDelete", {
         title: "Delete the category: ",
         category: category,
@@ -126,12 +139,11 @@ exports.categoryDeletePost = [
     validatePassword,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
-        const category = await Category.findById(req.params.id).exec();
-        if (category === null) {
-            const err = new Error("Category not found");
-            err.status = 404;
-            return next(err);
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            debugResponse(req, res, next);
         }
+        const category = await Category.findById(req.params.id).exec();
+        if (category === null) debugResponse(req, res, next);
         if (!errors.isEmpty()) {
             res.render("categoryDelete", {
                 title: "Delete the category: ",
