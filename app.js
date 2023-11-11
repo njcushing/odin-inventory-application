@@ -1,7 +1,7 @@
 var createError = require("http-errors");
-var express = require("express");
-
 require("dotenv").config();
+
+var express = require("express");
 
 // Set up mongoose connection
 const mongoose = require("mongoose");
