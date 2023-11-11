@@ -4,6 +4,23 @@ const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
+const validatePassword = body("password", "Password is incorrect")
+    .trim()
+    .escape()
+    .equals(process.env.ADMIN_PASS);
+
+const checkFieldValidation = [
+    body(
+        "name",
+        "Category name must be between 3 and 100 characters in length."
+    )
+        .trim()
+        .isLength({ min: 3, max: 100 })
+        .escape(),
+    body("description").trim().escape(),
+    validatePassword,
+];
+
 exports.categoryList = asyncHandler(async (req, res, next) => {
     const allCategories = await Category.find().exec();
     res.render("categoryList", {
@@ -37,14 +54,7 @@ exports.categoryCreateGet = asyncHandler(async (req, res, next) => {
 });
 
 exports.categoryCreatePost = [
-    body(
-        "name",
-        "Category name must be between 3 and 100 characters in length."
-    )
-        .trim()
-        .isLength({ min: 3, max: 100 })
-        .escape(),
-    body("description").trim().escape(),
+    ...checkFieldValidation,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         const category = new Category({
@@ -79,14 +89,7 @@ exports.categoryUpdateGet = asyncHandler(async (req, res, next) => {
 });
 
 exports.categoryUpdatePost = [
-    body(
-        "name",
-        "Category name must be between 3 and 100 characters in length."
-    )
-        .trim()
-        .isLength({ min: 3, max: 100 })
-        .escape(),
-    body("description").escape(),
+    ...checkFieldValidation,
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         const category = new Category({
@@ -119,16 +122,30 @@ exports.categoryDeleteGet = asyncHandler(async (req, res, next) => {
     });
 });
 
-exports.categoryDeletePost = asyncHandler(async (req, res, next) => {
-    const category = await Category.findById(req.params.id).exec();
-    if (category === null) {
-        const err = new Error("Category not found");
-        err.status = 404;
-        return next(err);
-    }
-    await Item.updateMany({
-        $pull: { category: new mongoose.Types.ObjectId(req.body.categoryid) },
-    });
-    await Category.findByIdAndDelete(req.body.categoryid);
-    res.redirect("/catalog/categories");
-});
+exports.categoryDeletePost = [
+    validatePassword,
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        const category = await Category.findById(req.params.id).exec();
+        if (category === null) {
+            const err = new Error("Category not found");
+            err.status = 404;
+            return next(err);
+        }
+        if (!errors.isEmpty()) {
+            res.render("categoryDelete", {
+                title: "Delete the category: ",
+                category: category,
+                errors: errors.array(),
+            });
+        } else {
+            await Item.updateMany({
+                $pull: {
+                    category: new mongoose.Types.ObjectId(req.body.categoryid),
+                },
+            });
+            await Category.findByIdAndDelete(req.body.categoryid);
+            res.redirect("/catalog/categories");
+        }
+    }),
+];
