@@ -21,7 +21,26 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 const catalogRouter = require("./routes/catalog");
 
+const compression = require("compression");
+const helmet = require("helmet");
+
 var app = express();
+
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 20,
+});
+app.use(limiter);
+
+// Set CSP headers to allow our Bootstrap and Jquery to be served
+app.use(
+    helmet.contentSecurityPolicy({
+        directives: {
+            "script-src": ["'self'", "code.jquery.com", "cdn.jsdelivr.net"],
+        },
+    })
+);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -32,6 +51,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(compression());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
