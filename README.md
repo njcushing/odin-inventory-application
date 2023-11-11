@@ -5,4 +5,4 @@ This application was created as a part of The Odin Project's NodeJS course. The 
 - Connect to a MongoDB database
 - Perform CRUD operations on records in the database
 - Display the information using a template engine
-- Use user authentication to prevent unauthorised users from performing Create and Update operations on the records in the database (NOT YET IMPLEMENTED)
+- Use user authentication to prevent unauthorised users from performing Create, Update and Delete operations on the records in the database
